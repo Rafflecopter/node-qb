@@ -16,7 +16,7 @@
     "service-provider",
     "service-oriented-architecture"
   ],
-  "repository": "git://github.com/yanatan16/node-qb.git",
+  "repository": "git://github.com/Rafflecopter/node-qb.git",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
