@@ -2,7 +2,7 @@
 
 A super-simple service-provder framework.
 
-`qb` makes it easy to create a service-oriented architecture built on Redis queues (specifically [relyq](https://github.com/yanatan16/relyq)).
+`qb` makes it easy to create a service-oriented architecture built on Redis queues (specifically [relyq](https://github.com/Rafflecopter/relyq)).
 
 ```javascript
 // Init
@@ -58,7 +58,7 @@ require('qb').init(options);
 
 Common:
 
-- `prefix: 'my-services'` (default: 'qb') The [relyq](https://github.com/yanatan16/relyq) service prefix for Redis queue keys. (Service endpoints will take the type name after the prefix.)
+- `prefix: 'my-services'` (default: 'qb') The [relyq](https://github.com/Rafflecopter/relyq) service prefix for Redis queue keys. (Service endpoints will take the type name after the prefix.)
 - `timeout: 1` (in seconds, defaults to 1) The timeout of blocking redis calls on the queue. This determines how often `qb` checks for `.end()` calls.
 
 Others:
@@ -66,7 +66,7 @@ Others:
 - `clean_finish: true` (default: true) If true, no jobs are kept after being successfully finished.
 - `delimeter: ':'` (default: ':') Sets the Redis delimeter
 - `idfield: 'id'` (default: 'id') Sets the id field to use on tasks. IDs will be distinct and uniquely set on push if they don't already exist.
-- `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/yanatan16/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
+- `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/Rafflecopter/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
   - If using `relyq.MongoQ`, additional options are required: `mongo: mongodb.mongoClient`, `db: dbname`, and `collection: collname`.
 - `max_concurrent_callbacks: 0` (defaults to infinity/0) Set the default max_concurrent_callbacks in case its not passed in on `.can`.
 
@@ -81,11 +81,11 @@ TODO
 
 ### messageq
 
-[messageq](https://github.com/yanatan16/node-messageq) is a simple, reliable Redis-backed task queue based pub/sub messaging system based on [relyq](https://github.com/yanatan16/relyq). The options below will default to the values in `.init(options)`.
+[messageq](https://github.com/Rafflecopter/node-messageq) is a simple, reliable Redis-backed task queue based pub/sub messaging system based on [relyq](https://github.com/Rafflecopter/relyq). The options below will default to the values in `.init(options)`.
 
-For receving/`.speaks`:
+- `discovery_prefix: 'my-soa-discovery'` (required) - Redis key prefix for the discovery service.
 
-- `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/yanatan16/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
+- `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/Rafflecopter/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
   - If using `relyq.MongoQ`, additional options are required: `mongo: mongodb.mongoClient`, `db: dbname`, and `collection: collname`.
 - `max_out: 100` (default: 100) Max number of push events to fire concurrently. It is usually safe to keep this high (unless you have significant `.pre('push')` middleware).
 
@@ -101,5 +101,5 @@ npm test
 
 See LICENSE file.
 
-[1]: https://travis-ci.org/yanatan16/node-qb.png?branch=master
-[2]: http://travis-ci.org/yanatan16/node-qb
+[1]: https://travis-ci.org/Rafflecopter/node-qb.png?branch=master
+[2]: http://travis-ci.org/Rafflecopter/node-qb
