@@ -68,7 +68,7 @@ Others:
 - `idfield: 'id'` (default: 'id') Sets the id field to use on tasks. IDs will be distinct and uniquely set on push if they don't already exist.
 - `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/Rafflecopter/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
   - If using `relyq.MongoQ`, additional options are required: `mongo: mongodb.mongoClient`, `db: dbname`, and `collection: collname`.
-- `max_concurrent_callbacks: 0` (defaults to infinity/0) Set the default max_concurrent_callbacks in case its not passed in on `.can`.
+- `max_concurrent_callbacks: 100` (defaults to 100) Set the default max_concurrent_callbacks in case its not passed in on `.can`.
 
 
 ## Dialects
