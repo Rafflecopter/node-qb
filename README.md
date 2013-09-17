@@ -9,8 +9,8 @@ A super-simple service-provder framework.
 var qb = require('qb').init(options);
 
 // Set up services to provide
-qb.can('email', sendEmail [,max_concurrent_callbacks])
-  .can('add-subscriber', addSubscriber [,max_concurrent_callbacks])
+qb.can('email', [max_concurrent_callbacks,] sendEmail )
+  .can('add-subscriber', [max_concurrent_callbacks,] addSubscriber)
   .speaks('http' [,httpOptions])
   .speaks('messageq' [, messageqOptions])
   .start();
