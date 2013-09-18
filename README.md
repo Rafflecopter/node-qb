@@ -16,8 +16,8 @@ qb.can('email', [max_concurrent_callbacks,] sendEmail )
   .start();
 
 // Push tasks onto remote services
-qb.dialect('http').push('other-service', {a:'new', job:'description'})
-  .dialect('messageq').push('yet-another-service', {do:'this',a:'lot'});
+qb.call('http').push('other-service', {a:'new', job:'description'})
+  .call('messageq').push('yet-another-service', {do:'this',a:'lot'});
 
 // You can setup middleware
 qb.pre('push').use(setId).use(addReceivedTimestamp)
@@ -27,6 +27,13 @@ qb.pre('push').use(setId).use(addReceivedTimestamp)
 
 // Some time later, graceful shutdown
 qb.post('end', quit).end();
+
+// Handle errors
+qb.on('error', function (err) {
+  var args = Array.prototype.slice.call(arguments, 1);
+
+  // do something with err and args
+})
 ```
 
 ## Features

@@ -26,6 +26,15 @@ tests.basic = function basic(test) {
     .emit('event', 'yolo');
 }
 
+tests.callback = function callback(test) {
+  MP.on('error', test.ifError)
+    .on('event', function (arg, next) {
+      test.equal(arg, 'yolo');
+      next();
+    })
+    .emit('event', 'yolo', test.done);
+}
+
 tests.pre_on_post = function pre_on_post(test) {
   var state = 0;
   MP.on('error', test.ifError)
@@ -100,13 +109,42 @@ tests.multiple_events = function multiple_events(test) {
       test.equal(arg.is, 'c2');
       next();
     })
-    .post('ev1', function (arg, next) {
-      if (arg.last) {
-        test.done();
-      }
-    })
     .emit('ev1', {is:'c1'})
     .emit('ev1', {is:'c1'})
     .emit('ev2', {is: 'c2'})
-    .emit('ev1', {is: 'c1',last:true});
+    .emit('ev1', {is: 'c1'}, test.done);
+}
+
+tests.once = function once(test) {
+  MP.on('error', test.ifError)
+    .once('event')
+      .use(function (arg, next) {
+        test.equal(arg.hello, 'world');
+        arg.hello = 'monster';
+        next();
+      })
+    .post('event')
+      .use(function (arg, next) {
+        test.equal(arg.hello, arg.first ? 'monster' : 'world');
+        next();
+      })
+
+    .emit('event', {hello: 'world', first:true})
+    .emit('event', {hello:'world'}, test.done);
+}
+
+
+tests.reversed_post = function reversed_post(test) {
+  MP.on('error', test.ifError)
+    .post('event')
+      .use(function (arg, next) {
+        test.equal(arg.i++, 1);
+        next();
+      })
+      .use(function (arg, next) {
+        test.equal(arg.i++, 0);
+        next();
+      })
+
+    .emit('event', {i:0}, test.done);
 }
