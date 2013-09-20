@@ -84,19 +84,17 @@ tests.modify_args = function modify_args(test) {
 }
 
 tests.error_trigger = function error_trigger(test) {
-  MP.on('error', function (err, arg1, arg2, next) {
-      test.equal(err.message, 'omgomgomg');
-      test.deepEqual(arg1, {trigger:'error'});
-      test.deepEqual(arg2, {for:'reals'});
-      test.done();
-    })
+  MP.on('error', test.ifError)
     .on('event', function (arg1, arg2, next) {
       if (arg1.trigger === 'error') {
         next(new Error('omgomgomg'));
       }
     })
     .emit('event', {trigger: 'nothing'})
-    .emit('event', {trigger: 'error'}, {for: 'reals'});
+    .emit('event', {trigger: 'error'}, {for: 'reals'}, function (err) {
+      test.equal(err.message, 'omgomgomg')
+      test.done();
+    });
 }
 
 tests.multiple_events = function multiple_events(test) {

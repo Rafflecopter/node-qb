@@ -97,10 +97,7 @@ tests.process_middleware = function process_middleware(test) {
 }
 
 tests.failed_tasks = function failed_tasks(test) {
-  qb.on('error', function (error, type, task, next) {
-      test.equal(error.message, 'failure')
-      next();
-    })
+  qb.on('error', test.done)
     .can('bad', function (task, done) {
       test.equal(task.hate, 'love')
       done(new Error('failure'));
@@ -121,11 +118,7 @@ tests.failed_tasks = function failed_tasks(test) {
 tests.multiple = function multiple(test) {
   var n = 0, tend = function () {if (++n > 4) test.done(); }
 
-  qb.on('error', function (err, type, task, next) {
-      test.equal(type, 'super-fail');
-      test.equal(err.message, 'andross');
-      next();
-    })
+  qb.on('error', test.done)
     .can('super-soaker', function (task, done) {
       task.soak = true;
       done();
@@ -145,6 +138,9 @@ tests.multiple = function multiple(test) {
         }
         next();
       })
+    .pre('push', function (type, task, next) {
+      next();
+    })
     .on('fail')
       .use(function (type, task, next) {
         test.equal(type, 'super-fail');
@@ -161,7 +157,7 @@ tests.multiple = function multiple(test) {
     .start()
 
     .push('super-soaker', {something: 'here'}, test.ifError)
-    .push('super-soaker', {something: 'here'}, test.ifError)
+    .push('super-soaker', {something: 'else'}, test.ifError)
     .push('bad-soaker', {something: 'here'}, test.ifError)
     .push('super-fail', {something: 'here'}, test.ifError)
     .push('bad-soaker', {something: 'here'}, test.ifError);

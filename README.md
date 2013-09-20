@@ -17,7 +17,8 @@ qb.can('email', [max_concurrent_callbacks,] sendEmail )
 
 // Push tasks onto remote services
 qb.call('http').push('other-service', {a:'new', job:'description'})
-  .call('messageq').push('yet-another-service', {do:'this',a:'lot'});
+  .call('messageq').subcribe('some-channel', onSomeChannel)
+                   .publish('yet-another-service', {do:'this',a:'lot'});
 
 // You can setup middleware
 qb.pre('push').use(setId).use(addReceivedTimestamp)
@@ -90,11 +91,31 @@ TODO
 
 [messageq](https://github.com/Rafflecopter/node-messageq) is a simple, reliable Redis-backed task queue based pub/sub messaging system based on [relyq](https://github.com/Rafflecopter/relyq). The options below will default to the values in `.init(options)`.
 
+The primary two methods are the `.publish` and `.subscribe` methods, see the [messageq](https://github.com/Rafflecopter/node-messageq) for more information.
+
 - `discovery_prefix: 'my-soa-discovery'` (required) - Redis key prefix for the discovery service.
 
 - `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/Rafflecopter/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
   - If using `relyq.MongoQ`, additional options are required: `mongo: mongodb.mongoClient`, `db: dbname`, and `collection: collname`.
 - `max_out: 100` (default: 100) Max number of push events to fire concurrently. It is usually safe to keep this high (unless you have significant `.pre('push')` middleware).
+
+## Middleware
+
+Middleware can be put on the following events: `push`, `process`, `fail`, `finish`, and `error`. All middleware can be either `.pre(event)`, `.post(event)`, or `.on(event)` to control flow.
+
+These are the primary points for middleware:
+
+- `.pre('push').use(function (type, task, next) {})` Before a push occurs, modify the task. Erroring here will cause an error response by service-oriented dialects such as api `.push` and `http` dialect.
+- `.on('finish').use(function (type, task, next) {})` Do something upon a successful completion of a task. If `clean_finish` is `true` (by default it is), this is the last point which the task will be available before being dropped.
+- `.on('fail').use(function (type, task, next) {})` Do something upon a failed task. `task.error` will be available as a stringified error form.
+- `.on('error').use(function (err, next) {})` Do something upon an internal error occurring.
+
+Provided Middleware
+
+```javascript
+qb.pre('push')
+    .use(qb.mdw.setCurrentTime('receiveTime'))
+```
 
 ## Tests
 

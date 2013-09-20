@@ -11,7 +11,8 @@ var util = require('util');
 var _ = require('underscore'),
   async = require('async'),
   relyq = require('relyq'),
-  redis = require('redis');
+  redis = require('redis'),
+  uuid = require('uuid');
 
 // local
 var MiddlewareProvider = require('./lib/middleware'),
@@ -25,6 +26,7 @@ var default_options = {
   idfield: 'id',
   Q: relyq.RedisJsonQ,
   max_concurrent_callbacks: 100,
+  getid: function (task) { return task.id || (task.id = uuid.v4()); }
 }
 
 // -- Exports --
@@ -258,7 +260,7 @@ function _start(qb, dialects, types, callback) {
         queue = new Q(qb._redis, _.extend(_.clone(qb._options), {prefix: key})),
         listener = queue.listen(qb._options)
           .on('error', function (err, taskref, task) {
-            qb.emit('error', err, type, taskref, task);
+            qb.emit('error', err);
           })
           .on('task', function (task, done) {
             qb.emit('process', type, task, function (err) {
