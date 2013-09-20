@@ -100,7 +100,6 @@ TODO
 
 ```
 npm install -g nodeunit
-npm install --dev
 npm test
 ```
 
