@@ -84,6 +84,5 @@ function createTests(options, dialect, endpoint) {
         .push('cnt', {i: j++}, test.ifError)
         .push('cnt', {i: j++}, test.ifError)
         .push('cnt', {i: j++}, test.ifError);
-
   }
 }
