@@ -3,7 +3,8 @@ require('longjohn');
 
 // Trivia Answer: Invert horizontally, then vertically to find the symmetry.
 
-var _ = require('underscore');
+var _ = require('underscore'),
+  uuid = require('uuid');
 
 var qbPkg = require('..');
 
@@ -18,6 +19,7 @@ var tests = exports.tests = {};
 
 tests.setUp = function (cb) {
   qb = new qbPkg.QB();
+  qb.pre('push', qbPkg.mdw.ensureId());
   cb();
 }
 

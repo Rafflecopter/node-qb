@@ -15,8 +15,9 @@ var _ = require('underscore'),
   uuid = require('uuid');
 
 // local
-var MiddlewareProvider = require('./lib/middleware'),
-  dialects = require('./dialects');
+var MiddlewareProvider = require('./lib/middleware_provider'),
+  Dialects = require('./lib/dialects'),
+  middleware = require('./lib/middleware');
 
 var default_options = {
   prefix: 'qb',
@@ -26,7 +27,6 @@ var default_options = {
   idfield: 'id',
   Q: relyq.RedisJsonQ,
   max_concurrent_callbacks: 100,
-  getid: function (task) { return task.id || (task.id = uuid.v4()); }
 }
 
 // -- Exports --
@@ -39,7 +39,8 @@ module.exports = {
       return module.exports.qb;
     }
     return (module.exports.qb = new QB(options));
-  }
+  },
+  mdw: middleware,
 };
 
 // -- Main Type and Public API --
@@ -57,10 +58,10 @@ function QB (options) {
 
   // Options
   qb._options = _.defaults(options || {}, default_options);
-  qb._redis = redis.createClient(qb._options.redis);
+  qb._redis = qb._options.redis || redis.createClient();
 
   // Init
-  qb._spoken = [];
+  qb._dialects = new Dialects(qb, qb._options);
   qb._types = {};
   qb._started = [];
   qb._queues = {};
@@ -88,19 +89,24 @@ QB.prototype.can = function can(type, mcc, callback) {
   }
 
   qb._types[type] = {mcc:mcc, callback: callback};
+  qb._dialects.can(type);
 
   // Handle early .start
   if (qb._started.length) {
     if (alreadyCalledCan) {
       qb._queues[type].queue._max_out = mcc;
     } else {
-      _start(qb, qb._spoken, _.object(type,mcc), function (err) {
+      _start(qb, _.object(type,mcc), function (err) {
         if (err) qb.emit('error', err);
       });
     }
   }
 
   return qb;
+}
+
+QB.prototype.types = function () {
+  return _.keys(this._types);
 }
 
 /*
@@ -111,17 +117,8 @@ QB.prototype.can = function can(type, mcc, callback) {
 QB.prototype.speaks = function speaks(dialect, options) {
   var qb = this;
 
-  options = _.defaults(options, qb._options);
-
-  dialects[dialect].init(options);
-  qb._spoken.push(dialect);
-
-  // Handle early .start
-  if (qb._started.length) {
-    _start(qb, [dialect], qb._types, function (err) {
-      if (err) qb.emit('error', err);
-    });
-  }
+  options = _.defaults(options || {}, qb._options);
+  qb._dialects.speaks(dialect, options);
 
   return qb;
 }
@@ -136,7 +133,9 @@ QB.prototype.start = function start(optional_callback) {
   var qb = this,
     types = _.omit(qb._types, qb._started);
 
-  _start(qb, qb._spoken, types, function (err) {
+  qb._dialects.start();
+
+  _start(qb, types, function (err) {
     if (err) qb.emit('error', err);
     if (optional_callback) optional_callback(err)
   });
@@ -183,23 +182,10 @@ QB.prototype.push = function push(type, task, callback) {
 * @param @optional callback function (err, caller) - Avoid the thrown error by passing a callback
 *   If callback doesn't exist, will throw and return.
 */
-QB.prototype.call = function call(dialect, callback) {
-  var qb = this,
-    err, ret;
+QB.prototype.call = function call(dialect, arg) {
+  var qb = this;
 
-  if (!_.contains(qb._spoken, dialect)) {
-    err = new Error('Cannot .call a dialect that is not spoken (via .speaks)');
-  } else {
-    ret = dialects[dialect].caller();
-  }
-
-  if (callback) {
-    callback(err, ret);
-  } else if (err) {
-    throw err;
-  } else {
-    return ret;
-  }
+  return qb._dialects.call.apply(qb._dialects, arguments);
 }
 
 /*
@@ -243,15 +229,10 @@ function _listeners(qb, cb) {
   cb();
 }
 
-function _start(qb, dialects, types, callback) {
+function _start(qb, types, callback) {
   var Q = qb._options.Q;
 
   async.parallel([
-    // Start each of the dialects
-    async.apply(async.each, dialects, function (dialect, cb) {
-      dialects[dialect].start(types, cb);
-    }),
-
     // Start up each of queues
     async.apply(async.each, _.pairs(types), function (pair, cb) {
       var type = pair[0],
@@ -286,9 +267,10 @@ function _start(qb, dialects, types, callback) {
 
 function _end(qb, callback) {
   async.parallel([
-    async.apply(async.each, qb._spoken, function (dsys, cb) {
-      dsys.end(cb);
-    }),
+    function (cb) {
+      qb._dialects.end();
+      cb();
+    },
     async.apply(async.each, _.pluck(qb._queues, 'listener'), function (list, cb) {
       list.once('end', cb).end();
     })

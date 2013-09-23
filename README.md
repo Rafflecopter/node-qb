@@ -115,6 +115,7 @@ Provided Middleware
 ```javascript
 qb.pre('push')
     .use(qb.mdw.setCurrentTime('receiveTime'))
+    .use(qb.mdw.ensureIdExists('id', uuid.v4))
 ```
 
 ## Tests
