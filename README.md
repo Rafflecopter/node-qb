@@ -16,9 +16,14 @@ qb.can('email', [max_concurrent_callbacks,] sendEmail )
   .start();
 
 // Push tasks onto remote services
-qb.call('http').push('other-service', {a:'new', job:'description'})
-  .call('messageq').subcribe('some-channel', onSomeChannel)
-                   .publish('yet-another-service', {do:'this',a:'lot'});
+qb.speak('http').to('other-service')
+    .push('other-service', {a:'new', job:'description'});
+
+qb.speak('messageq').to('some-channel')
+    .subcribe('email', function (msg) { qb.push('add-subscriber', {name: msg.subscriber}); })
+    .publish({do:'this',a:'lot'})
+  .to('other-channel')
+    .publish({seri:'ously'});
 
 // You can setup middleware
 qb.pre('push').use(setId).use(addReceivedTimestamp)

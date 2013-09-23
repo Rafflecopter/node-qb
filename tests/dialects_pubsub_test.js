@@ -49,7 +49,7 @@ function createTests(options, dialect) {
       })
       .start();
 
-    var caller = qb1.call(dialect);
+    var caller = qb1.speak(dialect);
     process.nextTick(test.done);
   }
 
@@ -66,7 +66,7 @@ function createTests(options, dialect) {
           process.nextTick(test.done);
       })
       .start()
-      .call(dialect, 'bazchan')
+      .speak(dialect).to('bazchan')
         .subscribe(function (msg) {
           test.equal(msg.foo.slice(0, 3), 'bar')
           cbc++;
@@ -76,9 +76,9 @@ function createTests(options, dialect) {
     qb2.on('error', test.done)
       .start()
 
-      .call(dialect, 'barbaz')
+      .speak(dialect, 'barbaz')
         .publish('bazchan', {foo: 'bar'}, test.ifError)
-      .call(dialect, 'bazchan')
+      .to('bazchan')
         .publish({foo: 'barn'}, test.ifError);
   }
 
@@ -96,7 +96,7 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .call(dialect, 'two-chan')
+      .speak(dialect).to('two-chan')
         .subscribe('one');
 
     var call2 = qb2.on('error', test.done)
@@ -111,7 +111,7 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .call(dialect, 'two-chan')
+      .speak(dialect).to('two-chan')
         .subscribe('two');
 
     call1.publish({bound: 'two'});
@@ -141,21 +141,23 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .call(dialect, 'steak-sauce')
-        .subscribe(function (msg) { msg.chan = 'steak-sauce'; }, 'A1')
-      .call('wannabe-ketchup')
-        .subscribe(function (msg) { msg.chan = 'wannabe-ketchup'; }, 'Heinz57')
-      .call('just-sauce')
-        .subscribe(function (msg) { msg.chan = 'just-sauce'; }, 'A1', 'Heinz57');
+      .speak(dialect)
+        .to('steak-sauce')
+          .subscribe(function (msg) { msg.chan = 'steak-sauce'; }, 'A1')
+        .to('wannabe-ketchup')
+          .subscribe(function (msg) { msg.chan = 'wannabe-ketchup'; }, 'Heinz57')
+        .to('just-sauce')
+          .subscribe(function (msg) { msg.chan = 'just-sauce'; }, 'A1', 'Heinz57');
 
     qb2.on('error', test.done)
       .start()
-      .call(dialect, 'wannabe-ketchup')
-        .publish({Heinz57: true})
-      .call('steak-sauce')
-        .publish({A1:true})
-      .call('just-sauce')
-        .publish({Heinz57:true, A1:true});
+      .speak(dialect)
+        .to('wannabe-ketchup')
+          .publish({Heinz57: true})
+        .to('steak-sauce')
+          .publish({A1:true})
+        .to('just-sauce')
+          .publish({Heinz57:true, A1:true});
   }
 
   tests.multireceive = function multireceive(test) {
@@ -174,7 +176,7 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .call(dialect, 'multi-receive')
+      .speak(dialect, 'multi-receive')
         .subscribe(function(msg){msg.on='qb1';},'can');
 
     var call2 = qb2.on('error', test.done)
@@ -185,7 +187,7 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .call(dialect, 'multi-receive')
+      .speak(dialect, 'multi-receive')
         .subscribe(function(msg){msg.on='qb2';},'can');
 
     var call3 = qb3.on('error', test.done)
@@ -196,7 +198,7 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .call(dialect, 'multi-receive')
+      .speak(dialect, 'multi-receive')
         .subscribe(function(msg){msg.on='qb3';},'can');
 
     call1.publish({from:'qb1'});

@@ -175,17 +175,17 @@ QB.prototype.push = function push(type, task, callback) {
 }
 
 /*
-* Create a remote caller using a given dialect.
+* Create a remote speaker using a given dialect.
 * You must call .speaks(dialect) prior to using .call
 *
 * @param dialect string
 * @param @optional callback function (err, caller) - Avoid the thrown error by passing a callback
 *   If callback doesn't exist, will throw and return.
 */
-QB.prototype.call = function call(dialect, arg) {
+QB.prototype.speak = function speak(dialect, arg) {
   var qb = this;
 
-  return qb._dialects.call.apply(qb._dialects, arguments);
+  return qb._dialects.speak.apply(qb._dialects, arguments);
 }
 
 /*

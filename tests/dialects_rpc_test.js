@@ -44,7 +44,7 @@ function createTests(options, dialect, endpoint) {
       })
       .start();
 
-    var caller = qb.call(dialect);
+    var caller = qb.speak(dialect);
     process.nextTick(test.done);
   }
 
@@ -63,7 +63,7 @@ function createTests(options, dialect, endpoint) {
         test.done();
       })
       .start()
-      .call(dialect, endpoint)
+      .speak(dialect).to(endpoint)
         .push('fn', {heli: 'copter'}, test.ifError);
   }
 
@@ -80,7 +80,7 @@ function createTests(options, dialect, endpoint) {
         }
       })
       .start()
-      .call(dialect, endpoint)
+      .speak(dialect).to(endpoint)
         .push('cnt', {i: j++}, test.ifError)
         .push('cnt', {i: j++}, test.ifError)
         .push('cnt', {i: j++}, test.ifError);
