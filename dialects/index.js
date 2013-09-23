@@ -15,15 +15,16 @@
     startup: function (qb, options) {
       return {
         can: function (type, type, ...) {},
-        push: function (endpoint, task, callback) {},
+        push: function (endpoint, type, task, callback) {},
         end: function () {}
       }
     },
   };
 
-  Startup should setup all singletones.
-  Service types are then passed in via can. Any listeners should be setup here.
-  The call function should return an object with a `push(task, callback)` method on it.
+  Startup should return an object that can perform dialect call operations. It should also start any listeners.
+  Valid service types are then passed in via can and listeners should be updated to them.
+  Push is a function to perform a remote push to another qb instance over the dialect.
+  End should close all listeners (asynchronously if necessary).
 
   For pub/sub-like dialects, they should export the following:
 
@@ -38,13 +39,14 @@
     },
   }
 
-  Startup should act similar to rpc, in that it sets up all singletons. Because services are not passed in, it shouldn't be called twice.
+  Startup should act similar to rpc, in that it sets up and retruns a singleton dialect.
   Subscribe will give a channel and a callback function to be called when the message arrives.
   Publish will publish a task on a given channel.
+  End should close all listeners (asynchronously if necessary).
 */
 
 module.exports = {
   messageq: require('./messageq'),
-  // http: require('./http')
+  http: require('./http')
 };
 

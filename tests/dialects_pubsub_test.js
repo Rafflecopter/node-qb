@@ -24,11 +24,14 @@ function createTests(options, dialect) {
 
   tests.setUp = function (cb) {
     qb1 = new qbPkg.QB({prefix:'qb1'})
-      .pre('push', qbPkg.mdw.ensureId());
+      .pre('push', qbPkg.mdw.ensureId())
+      .speaks(dialect, options);
     qb2 = new qbPkg.QB({prefix:'qb2'})
-      .pre('push', qbPkg.mdw.ensureId());
+      .pre('push', qbPkg.mdw.ensureId())
+      .speaks(dialect, options);
     qb3 = new qbPkg.QB({prefix:'qb3'})
-      .pre('push', qbPkg.mdw.ensureId());
+      .pre('push', qbPkg.mdw.ensureId())
+      .speaks(dialect, options);
     cb();
   }
 
@@ -44,7 +47,6 @@ function createTests(options, dialect) {
       .can('testf', function (task, done) {
         test.done(new Error('shouldnt be here'));
       })
-      .speaks(dialect, options)
       .start();
 
     var caller = qb1.call(dialect);
@@ -63,7 +65,6 @@ function createTests(options, dialect) {
         if (called == 2 && cbc == 2)
           process.nextTick(test.done);
       })
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'bazchan')
         .subscribe(function (msg) {
@@ -73,7 +74,6 @@ function createTests(options, dialect) {
 
 
     qb2.on('error', test.done)
-      .speaks(dialect, options)
       .start()
 
       .call(dialect, 'barbaz')
@@ -95,7 +95,6 @@ function createTests(options, dialect) {
           process.nextTick(test.done);
         }
       })
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'two-chan')
         .subscribe('one');
@@ -111,7 +110,6 @@ function createTests(options, dialect) {
           process.nextTick(test.done);
         }
       })
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'two-chan')
         .subscribe('two');
@@ -142,7 +140,6 @@ function createTests(options, dialect) {
           process.nextTick(test.done);
         }
       })
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'steak-sauce')
         .subscribe(function (msg) { msg.chan = 'steak-sauce'; }, 'A1')
@@ -152,7 +149,6 @@ function createTests(options, dialect) {
         .subscribe(function (msg) { msg.chan = 'just-sauce'; }, 'A1', 'Heinz57');
 
     qb2.on('error', test.done)
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'wannabe-ketchup')
         .publish({Heinz57: true})
@@ -177,7 +173,6 @@ function createTests(options, dialect) {
         done();
       })
       .on('finish', finish)
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'multi-receive')
         .subscribe(function(msg){msg.on='qb1';},'can');
@@ -189,7 +184,6 @@ function createTests(options, dialect) {
         done();
       })
       .on('finish', finish)
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'multi-receive')
         .subscribe(function(msg){msg.on='qb2';},'can');
@@ -201,7 +195,6 @@ function createTests(options, dialect) {
         done();
       })
       .on('finish', finish)
-      .speaks(dialect, options)
       .start()
       .call(dialect, 'multi-receive')
         .subscribe(function(msg){msg.on='qb3';},'can');
