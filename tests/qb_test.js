@@ -18,7 +18,9 @@ process.on('uncaughtException', function (err) {
 var tests = exports.tests = {};
 
 tests.setUp = function (cb) {
-  qb = new qbPkg.QB();
+  qb = new qbPkg.QB({
+    defer_interval: 50,
+  });
   qb.pre('push', qbPkg.mdw.ensureId());
   cb();
 }
@@ -163,4 +165,25 @@ tests.multiple = function multiple(test) {
     .push('bad-soaker', {something: 'here'}, test.ifError)
     .push('super-fail', {something: 'here'}, test.ifError)
     .push('bad-soaker', {something: 'here'}, test.ifError);
+}
+
+tests.deferred = function deferred(test) {
+  var called = false;
+
+  qb.on('error', test.done)
+    .can('after', function (task, done) {
+      test.ok(task.received + 50 < Date.now(), 'processing time too early recieved: ' + task.received + ' now: ' + Date.now());
+      called = true;
+      done();
+    })
+    .pre('push', qbPkg.mdw.setTimestamp('received'))
+    .on('finish', function (type, task, next) {
+      test.ok(called);
+      test.done();
+    })
+    .start();
+
+  process.nextTick(function () {
+    qb.push('after', {foo:'bar', when: Date.now() + 100});
+  });
 }
