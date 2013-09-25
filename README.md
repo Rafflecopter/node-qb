@@ -64,7 +64,13 @@ qb.on('error', function (err) {
 })
 
 // You can locally push tasks
-qb.push('email', )
+qb.push('email', {email: 'this-guy', template: 'whatever'})
+
+  // Or use deferred tasks
+  .push('email', {when: Date.now() + 60000, email: 'another-guy', template: 'whatever'})
+
+  // And you can do recurring tasks
+  .push('email', {every: 60*60*1000, email: 'our-man', template: 'recurring'});
 ```
 
 ## Features
