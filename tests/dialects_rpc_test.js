@@ -27,7 +27,6 @@ function createTests(options, dialect, endpoint) {
 
   tests.setUp = function (cb) {
     qb = new qbPkg.QB({prefix:'qb1'})
-      .pre('push', qbPkg.mdw.ensureId())
       .speaks(dialect, options);
     cb();
   }

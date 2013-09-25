@@ -19,9 +19,8 @@ var tests = exports.tests = {};
 
 tests.setUp = function (cb) {
   qb = new qbPkg.QB({
-    defer_interval: 50,
+    defer_polling_interval: 50,
   });
-  qb.pre('push', qbPkg.mdw.ensureId());
   cb();
 }
 
@@ -186,4 +185,26 @@ tests.deferred = function deferred(test) {
   process.nextTick(function () {
     qb.push('after', {foo:'bar', when: Date.now() + 100});
   });
+}
+
+tests.setTimestamp = function setTimestamp (test) {
+  var called = false;
+  qb.on('error', test.done)
+    .can('foobar', function (task, done) {
+      test.ok(task.pushtime > Date.now() - 1000 && task.pushtime < Date.now());
+      test.ok(task.timestamp > Date.now() - 100 && task.timestamp <= Date.now(), 'Timestamp isnt close enough ('+task.timestamp+') to now ('+Date.now()+')');
+      called = true;
+      done();
+    })
+    .pre('push')
+      .use(qbPkg.mdw.setTimestamp('pushtime'))
+    .pre('process')
+      .use(qbPkg.mdw.setTimestamp())
+    .on('finish', function (type, task, next) {
+      test.equal(called, true);
+      test.done();
+    })
+    .start()
+
+    .push('foobar', {foo: 'bar'}, test.ifError);
 }

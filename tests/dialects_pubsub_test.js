@@ -24,13 +24,10 @@ function createTests(options, dialect) {
 
   tests.setUp = function (cb) {
     qb1 = new qbPkg.QB({prefix:'qb1'})
-      .pre('push', qbPkg.mdw.ensureId())
       .speaks(dialect, options);
     qb2 = new qbPkg.QB({prefix:'qb2'})
-      .pre('push', qbPkg.mdw.ensureId())
       .speaks(dialect, options);
     qb3 = new qbPkg.QB({prefix:'qb3'})
-      .pre('push', qbPkg.mdw.ensureId())
       .speaks(dialect, options);
     cb();
   }
