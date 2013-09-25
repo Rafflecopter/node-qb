@@ -20,11 +20,11 @@
   "main": "run.js",
   "license": "MIT",
   "dependencies": {
-    "config": "~0.4.30"
   },
   "devDependencies": {
     "moniker": "~0.1.2",
-    "qb": "~0.1.3",
-    "longjohn": "~0.2.1"
+    "qb": "~0.3.2",
+    "longjohn": "~0.2.1",
+    "config": "~0.4.30"
   }
 }
