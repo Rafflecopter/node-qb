@@ -19,7 +19,9 @@
   "repository": "git://github.com/Rafflecopter/node-qb.git",
   "main": "run.js",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "config": "~0.4.30"
+  },
   "devDependencies": {
     "moniker": "~0.1.2",
     "qb": "~0.1.3",

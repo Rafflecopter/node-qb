@@ -119,10 +119,13 @@ Others:
 - `allow_recur: true` (defaults to true) Allows recurring tasks
   - `recur_field: 'when'` (defaults to 'when') Notes a field, that if filled and allow_recur is on, will create a recurring job recurring every `task[recur_field]` (in ms).
   - `recur_polling_interval: 60000` (in ms, defaults to 60s) Polling interval for recurring tasks to be pulled from the database. There is no blocking call so polling is our best choice.
+- `end_timeout: 10000` (defaults to 10s) Timeout on `.end(cb)` calls
+  - `catch_sigterm_end: true` (defaults to true) Tells qb to catch sigterm signals and perform an `.end()` call.
 
 ## Notes
 
 - Recurring tasks must include an ID so that they are not duplicated. The ID field defaults to 'id'.
+- `qb.log` is the singleton `require('book')` instance from the [node-book](https://github.com/shtylman/node-book) package. You can configure the singleton and all `qb.log` calls will be formatted as appropriate.
 
 ## Dialects
 

@@ -8,6 +8,7 @@ var qbPkg = require('..');
 var dialects = {
   messageq: {
     discovery_prefix: 'qb-test:discovery',
+    max_listeners: 20
   },
 }
 
@@ -15,6 +16,7 @@ var dialects = {
 process.on('uncaughtException', function (err) {
   console.error(err.stack);
 });
+process.setMaxListeners(40);
 
 _.each(dialects, createTests);
 
@@ -83,7 +85,6 @@ function createTests(options, dialect) {
     var called = {one: 0, two: 0};
     var call1 = qb1.on('error', test.done)
       .can('one', function (task, done) {
-        console.log('one', task);
         test.equal(task.bound, 'one');
         called.one++;
         done();
@@ -99,7 +100,6 @@ function createTests(options, dialect) {
 
     var call2 = qb2.on('error', test.done)
       .can('two', function (task, done) {
-        console.log('two', task);
         test.equal(task.bound, 'two')
         called.two++;
         done();
