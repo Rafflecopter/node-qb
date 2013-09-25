@@ -5,10 +5,15 @@
 // vendor
 var QB = require('qb'),
   config = require('config'), // simple config package
-  services = require('./services');
+  services = require('./services'),
+  redis = require('redis');
+
+// Stick redis in the init options
+var options = config.qb;
+options.redis = redis.createClient();
 
 // Setup
-var qb = QB.init(config.qb)
+var qb = QB.init(options)
 
   // Services provided
   .can('email-to-list', 10 /* max concurrent callbacks */, services.emailToList /* callback func */)

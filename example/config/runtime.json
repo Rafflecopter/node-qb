@@ -3,5 +3,11 @@
     "prefix": "qb:email-service",
     "defer_polling_interval": 500,
     "recur_polling_interval": 500
+  },
+  "http": {
+    "auth": {
+      "user": "myuser",
+      "pass": "mypass"
+    }
   }
 }

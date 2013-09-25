@@ -21,6 +21,7 @@ module.exports = {
   http: {
     port: 8000,
     base: '/qb',
+    auth: null, // If available, should contain {user: , pass: }
   },
   messageq: {
     discovery_prefix: 'qb:messageq:discovery',
