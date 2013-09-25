@@ -107,7 +107,6 @@ Common:
 
 Others:
 
-- `timeout: 1` (in seconds, defaults to 1) The timeout of blocking redis calls on the queue. This determines how often `qb` checks for `.end()` calls.
 - `clean_finish: true` (default: true) If true, no jobs are kept after being successfully finished.
 - `delimeter: ':'` (default: ':') Sets the Redis delimeter
 - `idfield: 'id'` (default: 'id') Sets the id field to use on tasks. IDs will be distinct and uniquely set on push if they don't already exist.
