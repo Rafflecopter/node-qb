@@ -20,6 +20,7 @@ var tests = exports.tests = {};
 tests.setUp = function (cb) {
   qb = new qbPkg.QB({
     defer_polling_interval: 50,
+    recur_polling_interval: 50,
   });
   cb();
 }
@@ -184,6 +185,27 @@ tests.deferred = function deferred(test) {
 
   process.nextTick(function () {
     qb.push('after', {foo:'bar', when: Date.now() + 100});
+  });
+}
+
+tests.recurring = function recurring(test) {
+  var called = 0, now = Date.now();
+
+  qb.on('error', test.done)
+    .can('joomla', function (task, done) {
+      test.ok(now <= task.received && task.received < Date.now(), 'received is not in the right band ' + now + ' < ' + task.received + ' < ' + Date.now())
+      test.ok(now + (called++) * 75 < Date.now(), 'processing time too early n: ' + called + ' recieved: ' + task.received + ' now: ' + Date.now())
+      done();
+    })
+    .pre('push', qbPkg.mdw.setTimestamp('received'))
+    .on('finish', function (type, task, next) {
+      if (called === 3)
+        test.done();
+    })
+    .start();
+
+  process.nextTick(function () {
+    qb.push('joomla', {foo:'bar', every: 75, id: 'xxrecur123'});
   });
 }
 
