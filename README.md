@@ -6,6 +6,17 @@ A super-simple service-provder framework.
 
 To get started, check out the [example app](https://github.com/Rafflecopter/node-qb/blob/master/example/app.js) look below.
 
+Minimal Example:
+
+```javascript
+require('qb').init({prefix: 'qb'})
+  .can('email', sendEmail)
+  .speaks('http', {port: 8000})
+  .start();
+```
+
+Full Example:
+
 ```javascript
 // Init
 var qbPkg = require('qb'),
