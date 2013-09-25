@@ -24,11 +24,11 @@ function createTests(options, dialect) {
 
   tests.setUp = function (cb) {
     qb1 = new qbPkg.QB({prefix:'qb1'})
-      .speaks(dialect, options);
+      .speaks(dialect, _.clone(options));
     qb2 = new qbPkg.QB({prefix:'qb2'})
-      .speaks(dialect, options);
+      .speaks(dialect, _.clone(options));
     qb3 = new qbPkg.QB({prefix:'qb3'})
-      .speaks(dialect, options);
+      .speaks(dialect, _.clone(options));
     cb();
   }
 
@@ -83,6 +83,7 @@ function createTests(options, dialect) {
     var called = {one: 0, two: 0};
     var call1 = qb1.on('error', test.done)
       .can('one', function (task, done) {
+        console.log('one', task);
         test.equal(task.bound, 'one');
         called.one++;
         done();
@@ -98,6 +99,7 @@ function createTests(options, dialect) {
 
     var call2 = qb2.on('error', test.done)
       .can('two', function (task, done) {
+        console.log('two', task);
         test.equal(task.bound, 'two')
         called.two++;
         done();
@@ -111,10 +113,10 @@ function createTests(options, dialect) {
       .speak(dialect).to('two-chan')
         .subscribe('two');
 
-    call1.publish({bound: 'two'});
-    call2.publish({bound: 'one'});
-    call1.publish({bound: 'two'});
-    call2.publish({bound: 'one'});
+    call1.publish({bound: 'two'}, test.ifError);
+    call2.publish({bound: 'one'}, test.ifError);
+    call1.publish({bound: 'two'}, test.ifError);
+    call2.publish({bound: 'one'}, test.ifError);
   }
 
   tests.multiroute = function multiroute(test) {

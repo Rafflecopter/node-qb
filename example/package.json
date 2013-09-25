@@ -1,10 +1,10 @@
 {
-  "name": "qb",
-  "description": "A super-simple service-provider framework.",
-  "version": "0.1.3",
+  "name": "qb-example",
+  "description": "An example qb service-provider app.",
+  "version": "0.0.1",
   "author": "Jon Eisen <jon@metricfeat.com>",
   "scripts": {
-    "test": "nodeunit tests"
+    "run": "node run.js"
   },
   "keywords": [
     "pub-sub",
@@ -17,20 +17,12 @@
     "service-oriented-architecture"
   ],
   "repository": "git://github.com/Rafflecopter/node-qb.git",
-  "main": "index.js",
+  "main": "run.js",
   "license": "MIT",
-  "dependencies": {
-    "relyq": "~0.6.2",
-    "underscore": "~1.5.2",
-    "async": "~0.2.9",
-    "redis": "~0.8.4",
-    "messageq": "~0.1.7",
-    "uuid": "~1.4.1",
-    "request": "~2.27.0",
-    "express": "~3.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "moniker": "~0.1.2",
+    "qb": "~0.1.3",
     "longjohn": "~0.2.1"
   }
 }
