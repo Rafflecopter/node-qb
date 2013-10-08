@@ -1,9 +1,11 @@
 // qb_test.js
 require('longjohn');
 
-var _ = require('underscore');
+var _ = require('underscore'),
+  express = require('express');
 
-var qbPkg = require('..');
+var qbPkg = require('..'),
+  qb;
 
 var dialects = {
   http: [{
@@ -22,12 +24,10 @@ _.each(dialects, function (args, dialect) {
 });
 
 function createTests(options, dialect, endpoint) {
-  var tests = exports[dialect] = {},
-    qb;
+  var tests = exports[dialect] = {};
 
   tests.setUp = function (cb) {
-    qb = new qbPkg.QB({prefix:'qb1'})
-      .speaks(dialect, options);
+    qb = new qbPkg.QB({prefix:'qb1'});
     cb();
   }
 
@@ -37,7 +37,8 @@ function createTests(options, dialect, endpoint) {
   }
 
   tests.nothing = function (test) {
-    qb.on('error', test.done)
+    qb.speaks(dialect, options)
+      .on('error', test.done)
       .can('testf', function (task, done) {
         test.done(new Error('shouldnt be here'));
       })
@@ -48,7 +49,8 @@ function createTests(options, dialect, endpoint) {
   }
 
   tests.basic_push = function basic_push(test) {
-    qb.on('error', test.done)
+    qb.speaks(dialect, options)
+      .on('error', test.done)
       .pre('push', function (type, task, next) {
         task.push = true;
         next();
@@ -68,7 +70,8 @@ function createTests(options, dialect, endpoint) {
 
   tests.multiple_pushes = function multiple_pushes(test) {
     var i = 0, j = 0;
-    qb.on('error', test.done)
+    qb.speaks(dialect, options)
+      .on('error', test.done)
       .can('cnt', function (task, done) {
         test.equal(task.i, i++);
         done();
@@ -83,5 +86,33 @@ function createTests(options, dialect, endpoint) {
         .push('cnt', {i: j++}, test.ifError)
         .push('cnt', {i: j++}, test.ifError)
         .push('cnt', {i: j++}, test.ifError);
+  }
+}
+
+exports.http.passed_in_app = function passed_in_app(test) {
+  var app = express().use(express.json()),
+    server = app.listen(8912);
+
+  qb.speaks('http', {app: app, base: '/passin'})
+    .on('error', test.done)
+    .pre('push', function (type, task, next) {
+      task.push = true;
+      next();
+    })
+    .can('fn', function (task, done) {
+      test.equal(task.push, true);
+      test.equal(task.heli, 'copter');
+      done();
+    })
+    .on('finish', function () {
+      finish();
+    })
+    .start()
+    .speak('http').to('http://localhost:8912/passin')
+      .push('fn', {heli: 'copter'}, test.ifError);
+
+  function finish() {
+    server.close();
+    test.done();
   }
 }

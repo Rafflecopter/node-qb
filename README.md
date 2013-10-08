@@ -148,6 +148,7 @@ The `.speaks.start` starts up a simple express server, while the `.speak.to.push
 Options:
 
 - `port` Port Number (if not present, no server will be started to listen)
+- `app` Allows one to pass in an express app of their choosing.
 - `base` Base api prefix
 - `retry` Number of retries before quitting a push call.
 
