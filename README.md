@@ -189,7 +189,10 @@ Provided Middleware
 
 ```javascript
 qb.pre('push')
-    .use(qb.mdw.setTimestamp('field-to-set-in-the-task'))
+  .use(qb.mdw.setTimestamp('field-to-set-in-the-task'))
+
+qb.on('fail')
+  .use(qb.mdw.retry(['service-to-retry','another-service'], 2 /* times */))
 ```
 
 ## Tests

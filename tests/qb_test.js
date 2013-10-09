@@ -230,3 +230,20 @@ tests.setTimestamp = function setTimestamp (test) {
 
     .push('foobar', {foo: 'bar'}, test.ifError);
 }
+
+tests.retryer = function retry(test) {
+  var i = 0
+  qb.on('error', test.done)
+    .can('serve', function (task, done) {
+      test.equal(task.retry, i++ ? i-1 : undefined)
+      done(new Error('yolo'))
+    })
+    .on('fail', qbPkg.mdw.retry(qb, 'serve', 2))
+    .on('fail', function (type, task, next) {
+      test.equal(task.retry, 2)
+      test.done()
+    })
+    .start()
+    .push('serve', {yolo:'yolo'})
+
+}
