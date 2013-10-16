@@ -25,5 +25,6 @@ module.exports = {
   },
   messageq: {
     discovery_prefix: 'qb:messageq:discovery',
+    ttl: 60000, // time between subscriber lookups (1m)
   },
 }

@@ -24,7 +24,7 @@
     "underscore": "~1.5.2",
     "async": "~0.2.9",
     "redis": "~0.8.4",
-    "messageq": "~0.1.9",
+    "messageq": "~0.2.0",
     "uuid": "~1.4.1",
     "request": "~2.27.0",
     "express": "~3.4.0",

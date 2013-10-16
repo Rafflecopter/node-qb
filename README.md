@@ -159,6 +159,7 @@ Options:
 Options:
 
 - `discovery_prefix: 'my-soa-discovery'` (required) - Redis key prefix for the discovery service. This must be same across all qb instances that want to talk to each other.
+- `ttl: 5000` (default: 5s (in ms)) - Time to live between cached subscriber requests. Use a large one for long-term subscribers.
 
 Example:
 
