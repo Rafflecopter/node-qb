@@ -175,6 +175,12 @@ qb.speaks('messageq', {discovery_prefix: 'qb:discovery'})
       .publish({a:'message',on:'the-channel'});
 ```
 
+### nats
+
+A pub/sub dialect based on the [nats](https://github.com/derekcollison/nats) server using the [node.js implementation](https://github.com/derekcollison/node_nats). The options passed on `options.nats` or as `{nats: {}}` in are the connection options for the nats `.connect()` function.
+
+_Note_: I suggest running the [gnatsd](https://github.com/apcera/gnatsd) server which is written in Go. I like Go better than ruby (also its probably faster).
+
 ## Middleware
 
 Middleware can be put on the following events: `push`, `process`, `fail`, `finish`, and `error`. All middleware can be either `.pre(event)`, `.post(event)`, or `.on(event)` to control flow.
