@@ -25,6 +25,10 @@ function createTests(options, dialect) {
   var tests = exports[dialect] = {},
     qb1, qb2, qb3;
 
+  function endpoint(chan) {
+    return dialect + '://' + chan;
+  }
+
   tests.setUp = function (cb) {
     qb1 = new qbPkg.QB({prefix:'qb1'})
       .speaks(dialect, _.clone(options));
@@ -49,7 +53,7 @@ function createTests(options, dialect) {
       })
       .start();
 
-    var caller = qb1.speak(dialect);
+    var caller = qb1.contact(endpoint('abc'));
     process.nextTick(test.done);
   }
 
@@ -66,7 +70,7 @@ function createTests(options, dialect) {
           process.nextTick(test.done);
       })
       .start()
-      .speak(dialect).to('bazchan')
+      .contact(endpoint('bazchan'))
         .subscribe(function (msg) {
           test.equal(msg.foo.slice(0, 3), 'bar')
           cbc++;
@@ -76,10 +80,12 @@ function createTests(options, dialect) {
     qb2.on('error', test.done)
       .start()
 
-      .speak(dialect, 'barbaz')
-        .publish('bazchan', {foo: 'bar'}, test.ifError)
-      .to('bazchan')
-        .publish({foo: 'barn'}, test.ifError);
+      .contacts(endpoint('barbaz'), 'bar')
+      .qb.contacts(endpoint('bazchan'), 'baz');
+
+    qb2.contact('baz')
+      .publish({foo: 'bar'}, test.ifError)
+      .publish({foo: 'barn'}, test.ifError);
   }
 
   tests.twoways = function twoways(test) {
@@ -96,9 +102,10 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .speak(dialect).to('one-chan')
+
+      .contact(endpoint('one-chan'))
         .subscribe('one')
-      .to('two-chan');
+      .qb.contact(endpoint('two-chan'));
 
     var call2 = qb2.on('error', test.done)
       .can('two', function (task, done) {
@@ -112,9 +119,10 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .speak(dialect).to('two-chan')
+
+      .contact(endpoint('two-chan'))
         .subscribe('two')
-      .to('one-chan');
+      .qb.contact(endpoint('one-chan'));
 
     setTimeout(function () {
       call1.publish({bound: 'two'}, test.ifError);
@@ -145,23 +153,23 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .speak(dialect)
-        .to('steak-sauce')
-          .subscribe(function (msg) { msg.chan = 'steak-sauce'; }, 'A1')
-        .to('wannabe-ketchup')
-          .subscribe(function (msg) { msg.chan = 'wannabe-ketchup'; }, 'Heinz57')
-        .to('just-sauce')
-          .subscribe(function (msg) { msg.chan = 'just-sauce'; }, 'A1', 'Heinz57');
+      .contact(endpoint('steak-sauce'))
+        .subscribe(function (msg) { msg.chan = 'steak-sauce'; }, 'A1')
+      .qb.contact(endpoint('wannabe-ketchup'))
+        .subscribe(function (msg) { msg.chan = 'wannabe-ketchup'; }, 'Heinz57')
+      .qb.contact(endpoint('just-sauce'))
+        .subscribe(function (msg) { msg.chan = 'just-sauce'; }, 'A1', 'Heinz57');
 
     qb2.on('error', test.done)
       .start()
-      .speak(dialect)
-        .to('wannabe-ketchup')
-          .publish({Heinz57: true})
-        .to('steak-sauce')
-          .publish({A1:true})
-        .to('just-sauce')
-          .publish({Heinz57:true, A1:true});
+      .contact(endpoint('wannabe-ketchup'))
+        .publish({Heinz57: true})
+
+      .qb.contact(endpoint('steak-sauce'))
+        .publish({A1:true})
+
+      .qb.contact(endpoint('just-sauce'))
+        .publish({Heinz57:true, A1:true});
   }
 
   tests.multireceive = function multireceive(test) {
@@ -180,11 +188,12 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .speak(dialect, 'multi-receive-2')
+
+      .contact(endpoint('multi-receive-2'))
         .subscribe(function(msg){msg.on='qb1';},'can')
-      .to('multi-receive-3')
+      .qb.contact(endpoint('multi-receive-3'))
         .subscribe(function(msg){msg.on='qb1';},'can')
-      .to('multi-receive-1');
+      .qb.contact(endpoint('multi-receive-1'));
 
     var call2 = qb2.on('error', test.done)
       .can('can', function (task, done) {
@@ -194,11 +203,12 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .speak(dialect, 'multi-receive-1')
+
+      .contact(endpoint('multi-receive-1'))
         .subscribe(function(msg){msg.on='qb2';},'can')
-      .to('multi-receive-3')
+      .qb.contact(endpoint('multi-receive-3'))
         .subscribe(function(msg){msg.on='qb2';},'can')
-      .to('multi-receive-2');
+      .qb.contact(endpoint('multi-receive-2'));
 
     var call3 = qb3.on('error', test.done)
       .can('can', function (task, done) {
@@ -208,11 +218,12 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .speak(dialect, 'multi-receive-1')
+
+      .contact(endpoint('multi-receive-1'))
         .subscribe(function(msg){msg.on='qb3';},'can')
-      .to('multi-receive-2')
+      .qb.contact(endpoint('multi-receive-2'))
         .subscribe(function(msg){msg.on='qb3';},'can')
-      .to('multi-receive-3');
+      .qb.contact(endpoint('multi-receive-3'));
 
     setTimeout(function () {
       call1.publish({from:'qb1'});

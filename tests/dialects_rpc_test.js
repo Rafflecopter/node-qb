@@ -44,7 +44,7 @@ function createTests(options, dialect, endpoint) {
       })
       .start();
 
-    var caller = qb.speak(dialect);
+    var caller = qb.contact(endpoint);
     process.nextTick(test.done);
   }
 
@@ -64,7 +64,7 @@ function createTests(options, dialect, endpoint) {
         test.done();
       })
       .start()
-      .speak(dialect).to(endpoint)
+      .contact(endpoint)
         .push('fn', {heli: 'copter'}, test.ifError);
   }
 
@@ -82,10 +82,12 @@ function createTests(options, dialect, endpoint) {
         }
       })
       .start()
-      .speak(dialect).to(endpoint)
-        .push('cnt', {i: j++}, test.ifError)
-        .push('cnt', {i: j++}, test.ifError)
-        .push('cnt', {i: j++}, test.ifError);
+      .contacts(endpoint, 'alias');
+
+    qb.contact('alias')
+      .push('cnt', {i: j++}, test.ifError)
+      .push('cnt', {i: j++}, test.ifError)
+      .push('cnt', {i: j++}, test.ifError);
   }
 }
 
@@ -108,7 +110,7 @@ exports.http.passed_in_app = function passed_in_app(test) {
       finish();
     })
     .start()
-    .speak('http').to('http://localhost:8912/passin')
+    .contacts('http://localhost:8912/passin')
       .push('fn', {heli: 'copter'}, test.ifError);
 
   function finish() {

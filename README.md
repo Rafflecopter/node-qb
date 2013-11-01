@@ -43,16 +43,25 @@ var qb = qb.init({
   // Start!
   .start();
 
-// Push tasks onto remote services using http
-qb.speak('http').to('http://my.friend.com/qb')
-    .push('other-service', {a:'new', job:'description'});
+// Contact another qb instance
 
-// Push tasks using a custom reliable redis-based pub/sub messaging system
-qb.speak('messageq').to('some-channel')
-    .subcribe(function (msg) { msg.email = 'abc@jon.com' }, 'email')
-    .publish({do:'this',a:'lot'})
-  .to('other-channel')
-    .publish({seri:'ously'});
+// Option 1: use the returned dialect
+var myFriend = qb.contacts('http://my.friend.com/qb');
+myFriend.push('other-service', {a:'new', job:'description'});
+
+// Option 2: use an alias
+qb.contacts('messageq://some-channel', 'somechan');
+qb.contacts('messageq://other-channel', 'otherchan');
+
+// Option 3: Always use .contact(uri)
+qb.contact('http://my.service.com/api/do/something').push(task);
+
+// ...later...
+qb.contact('somechan')
+  .subscribe(function(msg) { msg.email = 'abc@jon.com' }, 'email')
+  .publish({do:'this', a:'lot'});
+
+qb.contact('otherchan').publish({seri:'ously'});
 
 // Some time later, graceful shutdown
 qb.end(onend);
@@ -180,6 +189,14 @@ qb.speaks('messageq', {discovery_prefix: 'qb:discovery'})
 A pub/sub dialect based on the [nats](https://github.com/derekcollison/nats) server using the [node.js implementation](https://github.com/derekcollison/node_nats). The options passed on `options.nats` or as `{nats: {}}` in are the connection options for the nats `.connect()` function.
 
 _Note_: I suggest running the [gnatsd](https://github.com/apcera/gnatsd) server which is written in Go. I like Go better than ruby (also its probably faster).
+
+### Implementing Dialects
+
+There are two types of dialects, RPC (remote procedure call) which has a `.push` method to push a task onto another qb instance and pub/sub types which have `.subscribe` and `.publish` methods to which communicate on their own channels and do things upon receiving a message on a subscribed channel (including pushing the message as a task onto a work queue).
+
+See `lib/dialect_implementations/http.js` for an RPC example and `lib/dialect_implementations/messageq.js` for a pub/sub example.
+
+_Note_: QB doesn't actually allow RPC, only the use of it to push tasks onto another QB instance.
 
 ## Middleware
 
