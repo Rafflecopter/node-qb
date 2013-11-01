@@ -7,3 +7,5 @@ services:
 before_script:
   - npm install -g nodeunit
   - npm install --dev
+  - go get github.com/apcera/gnatsd
+  - gnatsd &

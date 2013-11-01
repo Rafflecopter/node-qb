@@ -10,6 +10,7 @@ var dialects = {
     discovery_prefix: 'qb-test:discovery',
     max_listeners: 20
   },
+  nats: {}
 }
 
 // If we are getting a test.done complaint, turn this on. It helps find errors
@@ -101,8 +102,10 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .contacts(endpoint('two-chan'), 'c')
-        .subscribe('one');
+
+      .contact(endpoint('one-chan'))
+        .subscribe('one')
+      .qb.contact(endpoint('two-chan'));
 
     var call2 = qb2.on('error', test.done)
       .can('two', function (task, done) {
@@ -116,13 +119,17 @@ function createTests(options, dialect) {
         }
       })
       .start()
-      .contacts(endpoint('two-chan'), 'c')
-        .subscribe('two');
 
-    qb1.contact('c').publish({bound: 'two'}, test.ifError);
-    qb2.contact('c').publish({bound: 'one'}, test.ifError);
-    qb1.contact('c').publish({bound: 'two'}, test.ifError);
-    qb2.contact('c').publish({bound: 'one'}, test.ifError);
+      .contact(endpoint('two-chan'))
+        .subscribe('two')
+      .qb.contact(endpoint('one-chan'));
+
+    setTimeout(function () {
+      call1.publish({bound: 'two'}, test.ifError);
+      call2.publish({bound: 'one'}, test.ifError);
+      call1.publish({bound: 'two'}, test.ifError);
+      call2.publish({bound: 'one'}, test.ifError);
+    }, 50);
   }
 
   tests.multiroute = function multiroute(test) {
@@ -181,8 +188,12 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .contact(endpoint('multi-receive'))
-        .subscribe(function(msg){msg.on='qb1';},'can');
+
+      .contact(endpoint('multi-receive-2'))
+        .subscribe(function(msg){msg.on='qb1';},'can')
+      .qb.contact(endpoint('multi-receive-3'))
+        .subscribe(function(msg){msg.on='qb1';},'can')
+      .qb.contact(endpoint('multi-receive-1'));
 
     var call2 = qb2.on('error', test.done)
       .can('can', function (task, done) {
@@ -192,8 +203,12 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .contact(endpoint('multi-receive'))
-        .subscribe(function(msg){msg.on='qb2';},'can');
+
+      .contact(endpoint('multi-receive-1'))
+        .subscribe(function(msg){msg.on='qb2';},'can')
+      .qb.contact(endpoint('multi-receive-3'))
+        .subscribe(function(msg){msg.on='qb2';},'can')
+      .qb.contact(endpoint('multi-receive-2'));
 
     var call3 = qb3.on('error', test.done)
       .can('can', function (task, done) {
@@ -203,11 +218,17 @@ function createTests(options, dialect) {
       })
       .on('finish', finish)
       .start()
-      .contact(endpoint('multi-receive'))
-        .subscribe(function(msg){msg.on='qb3';},'can');
 
-    call1.publish({from:'qb1'});
-    call2.publish({from:'qb2'});
-    call3.publish({from:'qb3'});
+      .contact(endpoint('multi-receive-1'))
+        .subscribe(function(msg){msg.on='qb3';},'can')
+      .qb.contact(endpoint('multi-receive-2'))
+        .subscribe(function(msg){msg.on='qb3';},'can')
+      .qb.contact(endpoint('multi-receive-3'));
+
+    setTimeout(function () {
+      call1.publish({from:'qb1'});
+      call2.publish({from:'qb2'});
+      call3.publish({from:'qb3'});
+    }, 50);
   }
 }
