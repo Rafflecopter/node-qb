@@ -247,3 +247,35 @@ tests.retryer = function retry(test) {
     .push('serve', {yolo:'yolo'})
 
 }
+
+tests.doublePushCallback = function doublePushCallback(test) {
+  var seen = {}
+  qb.on('error', test.done)
+    .can('lark', function (task, done) {
+      test.ok(false, 'shouldn\'t be here')
+      done()
+    })
+    .start()
+    .can('bark', function (task, done) {
+      test.equal(seen[task.x], undefined, 'Task ' + task + ' seen twice!')
+      seen[task.x] = true
+      done()
+    })
+    .on('finish', function (type, task, next) {
+      if (seen.a && seen.b) {
+        test.done()
+      }
+    })
+    .start()
+    .push('bark', {x: 'a'}, notwicecall('a'))
+    .push('bark', {x: 'b'}, notwicecall('b'))
+
+  function notwicecall(name) {
+    var called = false
+    return function (err) {
+      test.ifError(err)
+      test.equal(called, false, "No twicecall for " + name + " called twice!")
+      called = true
+    }
+  }
+}
