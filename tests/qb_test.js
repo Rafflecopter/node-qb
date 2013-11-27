@@ -4,7 +4,8 @@ require('longjohn');
 // Trivia Answer: Invert horizontally, then vertically to find the symmetry.
 
 var _ = require('underscore'),
-  uuid = require('uuid');
+  uuid = require('uuid'),
+  Moniker = require('moniker');
 
 var qbPkg = require('..');
 
@@ -14,11 +15,13 @@ var qb;
 process.on('uncaughtException', function (err) {
   console.error(err.stack);
 });
+process.setMaxListeners(100);
 
 var tests = exports.tests = {};
 
 tests.setUp = function (cb) {
   qb = new qbPkg.QB({
+    prefix: 'qb:'+Moniker.choose(),
     defer_polling_interval: 50,
     recur_polling_interval: 50,
   });
@@ -266,7 +269,6 @@ tests.doublePushCallback = function doublePushCallback(test) {
         test.done()
       }
     })
-    .start()
     .push('bark', {x: 'a'}, notwicecall('a'))
     .push('bark', {x: 'b'}, notwicecall('b'))
 
@@ -278,4 +280,25 @@ tests.doublePushCallback = function doublePushCallback(test) {
       called = true
     }
   }
+}
+
+tests.startTwice = function startTwice(test) {
+  try {
+    qb.on('error', test.done)
+      .can('lark', function () {})
+      .start()
+      .can('bark', function () {})
+      .start()
+    test.done(new Error("Should have thrown on second start!"))
+  } catch (err) {
+    test.done();
+  }
+}
+
+tests.earlyStartEnd = function earlyStartEnd(test) {
+  qb.on('error', test.done)
+    .can('ack', function (){})
+    .start()
+    .can('nack', function() {})
+    .end(test.done)
 }
