@@ -17,7 +17,7 @@ var dialects = {
 process.on('uncaughtException', function (err) {
   console.error(err.stack);
 });
-process.setMaxListeners(40);
+process.setMaxListeners(100);
 
 _.each(dialects, createTests);
 

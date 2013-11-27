@@ -4,7 +4,8 @@ require('longjohn');
 // Trivia Answer: Invert horizontally, then vertically to find the symmetry.
 
 var _ = require('underscore'),
-  uuid = require('uuid');
+  uuid = require('uuid'),
+  Moniker = require('moniker');
 
 var qbPkg = require('..');
 
@@ -14,11 +15,13 @@ var qb;
 process.on('uncaughtException', function (err) {
   console.error(err.stack);
 });
+process.setMaxListeners(100);
 
 var tests = exports.tests = {};
 
 tests.setUp = function (cb) {
   qb = new qbPkg.QB({
+    prefix: 'qb:'+Moniker.choose(),
     defer_polling_interval: 50,
     recur_polling_interval: 50,
   });
@@ -246,4 +249,56 @@ tests.retryer = function retry(test) {
     .start()
     .push('serve', {yolo:'yolo'})
 
+}
+
+tests.doublePushCallback = function doublePushCallback(test) {
+  var seen = {}
+  qb.on('error', test.done)
+    .can('lark', function (task, done) {
+      test.ok(false, 'shouldn\'t be here')
+      done()
+    })
+    .start()
+    .can('bark', function (task, done) {
+      test.equal(seen[task.x], undefined, 'Task ' + task + ' seen twice!')
+      seen[task.x] = true
+      done()
+    })
+    .on('finish', function (type, task, next) {
+      if (seen.a && seen.b) {
+        test.done()
+      }
+    })
+    .push('bark', {x: 'a'}, notwicecall('a'))
+    .push('bark', {x: 'b'}, notwicecall('b'))
+
+  function notwicecall(name) {
+    var called = false
+    return function (err) {
+      test.ifError(err)
+      test.equal(called, false, "No twicecall for " + name + " called twice!")
+      called = true
+    }
+  }
+}
+
+tests.startTwice = function startTwice(test) {
+  try {
+    qb.on('error', test.done)
+      .can('lark', function () {})
+      .start()
+      .can('bark', function () {})
+      .start()
+    test.done(new Error("Should have thrown on second start!"))
+  } catch (err) {
+    test.done();
+  }
+}
+
+tests.earlyStartEnd = function earlyStartEnd(test) {
+  qb.on('error', test.done)
+    .can('ack', function (){})
+    .start()
+    .can('nack', function() {})
+    .end(test.done)
 }

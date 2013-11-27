@@ -33,6 +33,7 @@
     "nats": "~0.2.8"
   },
   "devDependencies": {
-    "longjohn": "~0.2.1"
+    "longjohn": "~0.2.1",
+    "moniker": "~0.1.2"
   }
 }
