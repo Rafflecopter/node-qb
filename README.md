@@ -89,6 +89,7 @@ qb.push('email', {email: 'this-guy', template: 'whatever'})
 - Flexible middleware system: `.pre` and `.post` methods
 - Graceful shutdown: `.post('end', onReadyToShutdown).end` methods
 - Easy configuration
+- Fields on a task starting with an underscore will not be saved to the database. You can safely add them to the task in pre-process middleware.
 
 ## Install
 
