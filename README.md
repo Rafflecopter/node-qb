@@ -32,8 +32,8 @@ var qb = qb.init({
   .can('add-subscriber', [max_concurrent_callbacks,] addSubscriber)
 
   // Tell it what dialects to speak (i.e. communicate with other qb instances on)
-  .speaks('http', { port: 8000, base: '/qb' })
-  .speaks('messageq', { discovery_prefix: 'qb:discovery' })
+  .speaks(require('qb-http'), { port: 8000, base: '/qb' })
+  .speaks(require('qb-messageq'), { discovery_prefix: 'qb:discovery' })
 
   // Add some middleware
   .pre('push').use(mdw.setTimestamp('received'))
@@ -139,65 +139,57 @@ Others:
 
 ## Dialects
 
-Each dialect has its own specific options, which are passed in upon doing `speaks(dialect, options)`.
+Each dialect has its own specific options, which are passed in upon doing `speaks(dialect, options)`. Available dialects are used by requiring their respective packages:
 
-### http
+- [http](https://github.com/rafflecopter/node-qb-http) Simple http based RPC
+- [messageq](https://github.com/rafflecopter/node-qb-messageq) Simple redis-backed reliable message passing ([messageq](https://github.com/rafflecopter/node-messageq)). (Uses same task queue as qb)
+- [nats](https://github.com/rafflecotper/node-qb-nats) Pub/sub message passing using [nats](https://github.com/derekcollison/nats)
 
-The http dialect is simple.
+### Creating your own dialect
 
-```javascript
-qb.speaks('http', { port: 8000, base: '/qb-api' })
-  .start()
-  .speak('http')
-    .to('http://some.other.server.com/qb')
-      .push('service-name', {task:'task',desc:'ription'});
-```
+Dialects are ways to communicate with, to, and between qb service-providers.
 
-The `.speaks.start` starts up a simple express server, while the `.speak.to.push` uses request to communicate with another qb instance.
+Some dialects act like remote procedure calls, such as http.
+Other dialects act like pub/sub semantics, such as messageq.
+Each has its own api.
 
-Options:
+For rpc-like dialects, they should export the following:
 
-- `port` Port Number (if not present, no server will be started to listen)
-- `app` Allows one to pass in an express app of their choosing.
-- `base` Base api prefix
-- `retry` Number of retries before quitting a push call.
+module.exports = {
+  type: 'rpc',
+  startup: function (qb, options) {
+    return {
+      can: function (type, type, ...) {},
+      push: function (endpoint, type, task, callback) {},
+      end: function () {}
+    }
+  },
+};
 
-### messageq
-
-[messageq](https://github.com/Rafflecopter/node-messageq) is a simple, reliable Redis-backed task queue based pub/sub messaging system based on [relyq](https://github.com/Rafflecopter/relyq). It is based on a pub/sub model and an example follows.
-
-Options:
-
-- `discovery_prefix: 'my-soa-discovery'` (required) - Redis key prefix for the discovery service. This must be same across all qb instances that want to talk to each other.
-- `ttl: 5000` (default: 5s (in ms)) - Time to live between cached subscriber requests. Use a large one for long-term subscribers.
-
-Example:
-
-```javascript
-qb.speaks('messageq', {discovery_prefix: 'qb:discovery'})
-  .start()
-  .speak('messageq')
-    .to('some-channel')
-      .subscribe(functionToRun, 'service-to-trigger')
-    .to('other-channel')
-      .subscribe('service-to-trigger', 'another-service-to-trigger')
-
-      .publish({a:'message',on:'the-channel'});
-```
-
-### nats
-
-A pub/sub dialect based on the [nats](https://github.com/derekcollison/nats) server using the [node.js implementation](https://github.com/derekcollison/node_nats). The options passed on `options.nats` or as `{nats: {}}` in are the connection options for the nats `.connect()` function.
-
-_Note_: I suggest running the [gnatsd](https://github.com/apcera/gnatsd) server which is written in Go. I like Go better than ruby (also its probably faster).
-
-### Implementing Dialects
-
-There are two types of dialects, RPC (remote procedure call) which has a `.push` method to push a task onto another qb instance and pub/sub types which have `.subscribe` and `.publish` methods to which communicate on their own channels and do things upon receiving a message on a subscribed channel (including pushing the message as a task onto a work queue).
-
-See `lib/dialect_implementations/http.js` for an RPC example and `lib/dialect_implementations/messageq.js` for a pub/sub example.
+Startup should return an object that can perform dialect call operations. It should also start any listeners.
+Valid service types are then passed in via can and listeners should be updated to them.
+Push is a function to perform a remote push to another qb instance over the dialect.
+End should close all listeners (asynchronously if necessary).
 
 _Note_: QB doesn't actually allow RPC, only the use of it to push tasks onto another QB instance.
+
+For pub/sub-like dialects, they should export the following:
+
+module.exports = {
+  type: 'pubsub',
+  startup: function (qb, options) {
+    return {
+      subscribe: function (channel, onmessage) {},
+      publish: function (channel, task, callback) {},
+      end: function () {},
+    }
+  },
+}
+
+Startup should act similar to rpc, in that it sets up and retruns a singleton dialect.
+Subscribe will give a channel and a callback function to be called when the message arrives.
+Publish will publish a task on a given channel.
+End should close all listeners (asynchronously if necessary).
 
 ## Middleware
 
