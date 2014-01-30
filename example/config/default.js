@@ -19,7 +19,7 @@ module.exports = {
     end_timeout: 10000, //qb: Timeout on an end() call
   },
   http: {
-    port: 8000,
+    port: 8188,
     base: '/qb',
     auth: null, // If available, should contain {user: , pass: }
   },

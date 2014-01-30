@@ -12,7 +12,7 @@ var QB = require('qb'),
 function emailToList(task, done) {
   // This will fail the first time. Expected
   if (!lists[task.list])
-    return done(new Error('list is invalid'))
+    return done(new Error('list ' + task.list + ' is invalid'))
 
   QB.qb.log.trace('EMAIL: ' + task.list + ' (' + lists[task.list].join(', ') + '): ' + task.subject + ' // ' + task.body);
   done();

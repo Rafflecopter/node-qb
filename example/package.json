@@ -19,10 +19,14 @@
   "repository": "git://github.com/Rafflecopter/node-qb.git",
   "main": "run.js",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "qb-http": "0.0.1",
+    "qb-messageq": "0.0.1",
+    "underscore": "~1.5.2"
+  },
   "devDependencies": {
     "moniker": "~0.1.2",
-    "qb": "~0.3.3",
+    "qb": "~0.5.1",
     "longjohn": "~0.2.1",
     "config": "~0.4.30",
     "redis": "~0.8.4"

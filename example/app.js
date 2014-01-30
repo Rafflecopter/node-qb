@@ -20,8 +20,8 @@ var qb = QB.init(options)
   .can('add-email-to-list', 50 /* max concurrent callbacks */, services.addEmailToList /* callback func */)
 
   // Communication
-  .speaks('http', config.http)
-  .speaks('messageq', config.messageq)
+  .speaks(require('qb-http'), config.http)
+  .speaks(require('qb-messageq'), config.messageq)
 
   // Middleware
   .pre('push').use(QB.mdw.setTimestamp('received'))
@@ -43,13 +43,11 @@ var qb = QB.init(options)
   .start()
 
   // For messageq, you have to listen on channels rather than service-specific things
-  .speak('messageq')
-    .to('new-email')
-      .subscribe('add-email-to-list') // This will pass the message as a task to the service
-    .to('mq-email')
-      // You can use a function, and have as many callbacks as you like.
-      .subscribe(function (msg) { msg.list = 'mq-list' }, 'email-to-list')
-  .qb;
+  qb.contact('messageq://new-email')
+    .subscribe('add-email-to-list') // This will pass the message as a task to the service
+  qb.contact('messageq://mq-email')
+    // You can use a function, and have as many callbacks as you like.
+    .subscribe(function (msg) { msg.list = 'mq-list' }, 'email-to-list');
 
 qb.log.info('qb started!')
 
