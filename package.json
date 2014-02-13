@@ -1,7 +1,7 @@
 {
   "name": "qb",
   "description": "A super-simple service-provider framework.",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "author": "Jon Eisen <jon@metricfeat.com>",
   "scripts": {
     "test": "nodeunit tests"
