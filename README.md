@@ -145,6 +145,12 @@ Each dialect has its own specific options, which are passed in upon doing `speak
 - [messageq](https://github.com/rafflecopter/node-qb-messageq) Simple redis-backed reliable message passing ([messageq](https://github.com/rafflecopter/node-messageq)). (Uses same task queue as qb)
 - [nats](https://github.com/rafflecotper/node-qb-nats) Pub/sub message passing using [nats](https://github.com/derekcollison/nats)
 
+If necessary, you can access a dialects internal instance by calling `.dialect(name)`; for instance to add middleware to an http express server.
+
+```javascript
+qb.dialect('http').app.use(someNewMiddleware)
+```
+
 ### Creating your own dialect
 
 Dialects are ways to communicate with, to, and between qb service-providers.
