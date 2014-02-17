@@ -18,12 +18,3 @@ module.exports = {
   },
   mdw: middleware,
 };
-
-
-process.on('uncaughtException', function (err) {
-  if (module.exports.qb) {
-    module.exports.qb.log.panic(err);
-  } else {
-    console.error(err);
-  }
-})
