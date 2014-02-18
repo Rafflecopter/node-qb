@@ -1,5 +1,4 @@
 // middleware_test.js
-require('longjohn');
 
 var MiddlewareProvider = require('../lib/middleware_provider');
 

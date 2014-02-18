@@ -1,5 +1,4 @@
 // qb_test.js
-require('longjohn');
 
 // Trivia Answer: Invert horizontally, then vertically to find the symmetry.
 
@@ -114,7 +113,7 @@ tests.failed_tasks = function failed_tasks(test) {
     })
     .on('fail', function (type, task, next) {
       test.equal(type, 'bad')
-      test.equal(task.error, 'Error: failure')
+      test.ok(task.error && test.error.match(new RegExp('^Error: failure')))
       test.equal(task.hate, 'love')
       test.done();
     })
