@@ -4,7 +4,8 @@
 
 var _ = require('underscore'),
   uuid = require('uuid'),
-  Moniker = require('moniker');
+  Moniker = require('moniker'),
+  redis = require('redis');
 
 var qbPkg = require('..');
 
@@ -19,23 +20,43 @@ process.setMaxListeners(100);
 var tests = exports.tests = {};
 
 tests.setUp = function (cb) {
-  qb = new qbPkg.QB({
-    prefix: 'qb:'+Moniker.choose(),
-    defer_polling_interval: 50,
-    recur_polling_interval: 50,
-  });
-  cb();
+  var cli = redis.createClient(6379, 'localhost', { enable_offline_queue: false })
+    .on('ready', function () {
+      qb = new qbPkg.QB({
+        prefix: 'qb:'+Moniker.choose(),
+        defer_polling_interval: 50,
+        recur_polling_interval: 50,
+        redis: cli
+      });
+      cb();
+    });
 }
 
 tests.tearDown = function (cb) {
-  qb.end();
+  qb && qb.end();
   cb();
+}
+
+tests.ready = function ready (test) {
+  var called = false
+  test.expect(1)
+  qb
+    .on('error', test.ifError)
+    .can('something', function () {})
+    .can('else', function () {})
+    .start()
+    .on('ready', function () {
+      test.equal(called, false)
+      called = true
+      setTimeout(test.done, 50)
+    })
 }
 
 tests.basic = function basic (test) {
   var called = false;
   qb.on('error', test.ifError)
     .can('foobar', function (task, done) {
+      console.log('foobar')
       test.equal(task.foo, 'bar');
       called = true;
       done();
@@ -52,7 +73,9 @@ tests.basic = function basic (test) {
     })
     .start()
 
-    .push('foobar', {foo: 'bar'}, test.ifError);
+    .on('ready', function () {
+      qb.push('foobar', {foo: 'bar'}, test.done);
+    })
 }
 
 tests.push_middleware = function push_middleware (test) {
@@ -69,7 +92,9 @@ tests.push_middleware = function push_middleware (test) {
     })
     .on('finish', function () { test.done(); })
     .start()
-    .push('cancan', {can: 'can'}, test.ifError);
+    .on('ready', function () {
+      qb.push('cancan', {can: 'can'}, test.ifError);
+    });
 }
 
 tests.process_middleware = function process_middleware(test) {
@@ -99,7 +124,9 @@ tests.process_middleware = function process_middleware(test) {
       test.done();
     })
     .start()
-    .push('dodo', {do: 'do'}, test.ifError);
+    .on('ready', function () {
+      qb.push('dodo', {do: 'do'}, test.ifError);
+    });
 }
 
 tests.failed_tasks = function failed_tasks(test) {
@@ -113,12 +140,14 @@ tests.failed_tasks = function failed_tasks(test) {
     })
     .on('fail', function (type, task, next) {
       test.equal(type, 'bad')
-      test.ok(task.error && test.error.match(new RegExp('^Error: failure')))
+      test.ok(task.error && task.error.match(new RegExp('^Error: failure')))
       test.equal(task.hate, 'love')
       test.done();
     })
     .start()
-    .push('bad', {hate:'love'}, test.ifError);
+    .on('ready', function () {
+      qb.push('bad', {hate:'love'}, test.ifError);
+    });
 }
 
 tests.multiple = function multiple(test) {
@@ -161,12 +190,15 @@ tests.multiple = function multiple(test) {
         next();
       })
     .start()
+    .on('ready', function () {
+      qb
+        .push('super-soaker', {something: 'here'}, test.ifError)
+        .push('super-soaker', {something: 'else'}, test.ifError)
+        .push('bad-soaker', {something: 'here'}, test.ifError)
+        .push('super-fail', {something: 'here'}, test.ifError)
+        .push('bad-soaker', {something: 'here'}, test.ifError);
+    })
 
-    .push('super-soaker', {something: 'here'}, test.ifError)
-    .push('super-soaker', {something: 'else'}, test.ifError)
-    .push('bad-soaker', {something: 'here'}, test.ifError)
-    .push('super-fail', {something: 'here'}, test.ifError)
-    .push('bad-soaker', {something: 'here'}, test.ifError);
 }
 
 tests.deferred = function deferred(test) {
@@ -183,11 +215,10 @@ tests.deferred = function deferred(test) {
       test.ok(called);
       test.done();
     })
-    .start();
-
-  process.nextTick(function () {
-    qb.push('after', {foo:'bar', when: Date.now() + 100});
-  });
+    .start()
+    .on('ready', function () {
+      qb.push('after', {foo:'bar', when: Date.now() + 100});
+    });
 }
 
 tests.recurring = function recurring(test) {
@@ -204,11 +235,10 @@ tests.recurring = function recurring(test) {
       if (called === 3)
         test.done();
     })
-    .start();
-
-  process.nextTick(function () {
-    qb.push('joomla', {foo:'bar', every: 75, id: 'xxrecur123'});
-  });
+    .start()
+    .on('ready', function () {
+      qb.push('joomla', {foo:'bar', every: 75, id: 'xxrecur123'});
+    });
 }
 
 tests.setTimestamp = function setTimestamp (test) {
@@ -229,8 +259,10 @@ tests.setTimestamp = function setTimestamp (test) {
       test.done();
     })
     .start()
+    .on('ready', function () {
+      qb.push('foobar', {foo: 'bar'}, test.ifError);
+    })
 
-    .push('foobar', {foo: 'bar'}, test.ifError);
 }
 
 tests.retryer = function retry(test) {
@@ -246,12 +278,16 @@ tests.retryer = function retry(test) {
       test.done()
     })
     .start()
-    .push('serve', {yolo:'yolo'})
+    .on('ready', function () {
+      qb.push('serve', {yolo:'yolo'})
+    })
 
 }
 
 tests.doublePushCallback = function doublePushCallback(test) {
-  var seen = {}
+  test.expect(6);
+  var seen = {},
+    readycall = false
   qb.on('error', test.done)
     .can('lark', function (task, done) {
       test.ok(false, 'shouldn\'t be here')
@@ -259,7 +295,7 @@ tests.doublePushCallback = function doublePushCallback(test) {
     })
     .start()
     .can('bark', function (task, done) {
-      test.equal(seen[task.x], undefined, 'Task ' + task + ' seen twice!')
+      test.equal(seen[task.x], undefined, 'Task ' + JSON.stringify(task) + ' seen twice!')
       seen[task.x] = true
       done()
     })
@@ -267,9 +303,17 @@ tests.doublePushCallback = function doublePushCallback(test) {
       if (seen.a && seen.b) {
         test.done()
       }
+      next()
     })
-    .push('bark', {x: 'a'}, notwicecall('a'))
-    .push('bark', {x: 'b'}, notwicecall('b'))
+    .on('ready', function () {
+      // Wait for the second ready to go (bark gets setup secondly)
+      if (readycall) {
+        qb
+          .push('bark', {x: 'a'}, notwicecall('a'))
+          .push('bark', {x: 'b'}, notwicecall('b'))
+      }
+      readycall = true
+    })
 
   function notwicecall(name) {
     var called = false

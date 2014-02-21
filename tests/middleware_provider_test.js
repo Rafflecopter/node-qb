@@ -35,6 +35,16 @@ tests.callback = function callback(test) {
     .emit('event', 'yolo', test.done);
 }
 
+tests.nocallbacks = function nocallbacks(test) {
+  MP.on('event', function () {
+    test.equal(arguments.length, 0)
+  })
+  .on('event', function () {
+    test.equal(arguments.length, 0)
+  })
+  .emit('event', test.done)
+}
+
 tests.pre_on_post = function pre_on_post(test) {
   var state = 0;
   MP.on('error', test.ifError)
