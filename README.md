@@ -6,10 +6,10 @@ A super-simple service-provder framework.
 
 To get started, check out the [example app](https://github.com/Rafflecopter/node-qb/blob/master/example/app.js) look below.
 
-Minimal Example:
+Minimal Example (using `qb-relyq` backend):
 
 ```javascript
-require('qb').init({prefix: 'qb'})
+require('qb').init({prefix: 'qb'}, require('qb-relyq'))
   .can('email', sendEmail)
   .speaks('http', {port: 8000})
   .start();
@@ -20,10 +20,11 @@ Full Example:
 ```javascript
 // Init
 var qbPkg = require('qb'),
+  QB = qbPkg.backend(require('qb-relyq'))
   mdw = qbPkg.mdw;
 
 // Initialize qb
-var qb = qb.init({
+var qb = new QB({
     prefix: 'my-emailer'
   })
 
@@ -103,39 +104,24 @@ npm install qb
 
 ### on `.init()`
 
-The `require('qb').init()` function takes an options object. The options available are below:
+The `require('qb').init(options)` (as well as `new require('qb').backend(backend)(options)`) function takes an options object. The options available are below:
 
 ```javascript
-require('qb').init();
+var qb = require('qb').init(options, backend);
 //or
-require('qb').init(options);
+var QB = require('qb').backend(backend)
+  , qb = new QB(options)
 ```
 
-Common:
+Options:
 
-- `prefix: 'my-services'` (default: 'qb') The [relyq](https://github.com/Rafflecopter/relyq) service prefix for Redis queue keys. (Service endpoints will take the type name after the prefix.) This should be unique for each type of service. So two qb instances that share the same prefix will share the same queues, which is good for redundancy but bad for different instances
-
-Others:
-
-- `clean_finish: true` (default: true) If true, no jobs are kept after being successfully finished.
-- `delimeter: ':'` (default: ':') Sets the Redis delimeter
-- `idfield: 'id'` (default: 'id') Sets the id field to use on tasks. IDs will be distinct and uniquely set on push if they don't already exist.
-- `Q: relyq.RedisJsonQ` (defaults to RedisJsonQ) A [relyq](https://github.com/Rafflecopter/relyq) queue type to use. The suggested ones are `RedisJsonQ`, `RedisMsgPackQ`, and `MongoQ` (which only uses mongo for storing task objects, not the queue itself which is still in Redis).
-  - If using `relyq.MongoQ`, additional options are required: `mongo: mongodb.mongoClient`, `db: dbname`, and `collection: collname`.
-- `max_concurrent_callbacks: 100` (defaults to 100) Set the default max_concurrent_callbacks in case its not passed in on `.can`.
-- `allow_defer: true` (defaults to true) Allows deferred tasks
-  - `defer_field: 'when'` (defaults to 'when') Notes a field, that if filled and allow_defer is on, will create a deferred job deferred until the timestamp in the defer_field (which should be a javascript timestamp in milliseconds since 1970).
-  - `defer_polling_interval: 1000` (in ms, defaults to 1s) Polling interval for deferred tasks to be pulled from the database. There is no blocking call so polling is our best choice.
-- `allow_recur: true` (defaults to true) Allows recurring tasks
-  - `recur_field: 'when'` (defaults to 'when') Notes a field, that if filled and allow_recur is on, will create a recurring job recurring every `task[recur_field]` (in ms).
-  - `recur_polling_interval: 60000` (in ms, defaults to 60s) Polling interval for recurring tasks to be pulled from the database. There is no blocking call so polling is our best choice.
-- `end_timeout: 10000` (defaults to 10s) Timeout on `.end(cb)` calls
-  - `catch_sigterm_end: true` (defaults to true) Tells qb to catch sigterm signals and perform an `.end()` call.
+- `idfiled`: (default: `'id'`). The field of the task objects containing a unique ID.
+- `catch_sigterm_end`: (default: `true`). Catch SIGTERM and call `qb.end()` on receiving it.
+- `end_timeout`: (defualt: `1000` ms). Timeout on `qb.end()` waiting times before callback.
 
 ## Notes
 
-- Recurring tasks must include an ID so that they are not duplicated. The ID field defaults to 'id'.
-- `qb.log` is the singleton `require('book')` instance from the [node-book](https://github.com/shtylman/node-book) package. You can configure the singleton and all `qb.log` calls will be formatted as appropriate.
+- `qb.log` is a default instance of [node-book](https://github.com/shtylman/node-book). You can configure it with middleware and all `qb.log` calls will be formatted as appropriate. (See [book-raven](https://github.com/shtylman/node-book-raven) and [book-loggly](https://github.com/yanatan16/node-book-loggly).)
 
 ## Dialects
 
