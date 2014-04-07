@@ -119,6 +119,36 @@ Options:
 - `catch_sigterm_end`: (default: `true`). Catch SIGTERM and call `qb.end()` on receiving it.
 - `end_timeout`: (defualt: `1000` ms). Timeout on `qb.end()` waiting times before callback.
 
+## Backends
+
+`qb` is pluggable and requires backends in order to run a work queue. The original backend in [qb-relyq](https://github.com/Rafflecopter/node-qb-relyq). Another backend is in the works for kafka ([qb-kafka](https://github.com/Rafflecopter/node-qb-kafka)).
+
+#### Backend API
+
+A backend is a function of an options object and the qb object. It can then do whatever it wants to the qb object using its event emitter system. Here is a basic backend that doesn't use a work queue and immediately routes pushed tasks to be processed.
+
+```javascript
+function immediateProcessorBackend(options, qb) {
+  qb.on('queue-start', function (type, next) {
+      // start queue is a no-op
+      next()
+    })
+    .on('push', function (type, task, next) {
+      // No work queue is used here
+      setImmediate(function () {
+        qb.emit('process', type, task)
+      })
+      next()
+    })
+    .on('queues-end', function (next) {
+      next()
+    })
+}
+
+var QB = require('qb').backend(immediateProcessorBackend)
+  , qb = new QB(options)
+```
+
 ## Notes
 
 - `qb.log` is a default instance of [node-book](https://github.com/shtylman/node-book). You can configure it with middleware and all `qb.log` calls will be formatted as appropriate. (See [book-raven](https://github.com/shtylman/node-book-raven) and [book-loggly](https://github.com/yanatan16/node-book-loggly).)
