@@ -76,10 +76,6 @@ Available options:
 ```
 - `catch_sigterm_end` Catch SIGTERM and start a graceful shutdown (default: `true`)
 - `end_timeout` Timeout to wait for graceful shutdown of processing tasks
-- `allow_defer` Allow tasks that are "deferred" to a later date via the `Date` field: `defer_field` (allow defer is defaulted to `false` with defer field defaulting to `'when'`)
-    - *NOTE*: The queue component must support this
-- `allow_recur` Allow tasks that are "recurring" to via the millisecond field: `recur_field` (allow recur is defaulted to `false` with recur field defaulting to `'every'`)
-    - *NOTE*: The queue component must support this
 
 ## Components
 

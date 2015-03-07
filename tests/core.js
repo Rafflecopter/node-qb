@@ -38,6 +38,31 @@ tests.canprocess = function (test) {
     })
 }
 
+tests.fail = function (test) {
+  test.expect(8)
+  qb.on('error', test.done)
+    .post('fail', function (type, task) {
+      test.equal(type, 'task')
+      test.ok(task.truefield)
+      test.ok(task.fail)
+      setImmediate(test.done)
+    })
+    .post('finish', function (type, task) {
+      test.equal(type, 'task')
+      test.ok(!task.fail)
+    })
+    .on('process-ready', function (type, next) {
+      test.equal(type, 'task')
+      next()
+      qb.process('task', {truefield: true})
+      qb.process('task', {truefield: true, fail: true})
+    })
+    .can('task', function (task, callback) {
+      test.ok(task.truefield)
+      callback(task.fail ? new Error('test') : null)
+    })
+}
+
 tests.push_does_nothing = function (test) {
   test.expect(1)
   qb.on('error', test.ifError)
