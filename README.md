@@ -67,6 +67,7 @@ var qb = new QB(qbOptions)
 
 Available options:
 
+- `name` The name used in log messages.
 - `aliases` An object mapping a pushable type to a location
 ```javascript
 {
