@@ -78,6 +78,19 @@ Available options:
 - `catch_sigterm_end` Catch SIGTERM and start a graceful shutdown (default: `true`)
 - `end_timeout` Timeout to wait for graceful shutdown of processing tasks
 
+## Upgrading from 1.x
+
+Version 2.0 is a complete refactor of the `qb` ecosystem. Here's a rundown of the updates:
+
+- The backend system (`QB = require('qb').backend(require('qb-relyq'))`) has been folded into the new component system as [queue components](#queue-components).
+- The dialect system (`qb.speaks('http', ...)` and `qb.dialect('http')`) has also been folded into the component system as [push components](#push-components) and [receive components](#receive-components).
+- All options for all dialects and backends used to passed in using a single object, now they are split out into individual options objects passed using `qb.component(component, options)`.
+- The queue component API is _way_ easier to use than the old dialect API.
+- The `.contact()` system has been replaced with a simpler `.alias(alias, location)`
+- `qb.start()` is gone.
+
+Overall the changes are a great refactor, bringing down the code size and increasing usability.
+
 ## Components
 
 `qb` is useless framework without its components. The primary component is one that can pull tasks off of a queue for processing (called queue compenents). Other components will allow pushing of tasks to other queues (push components), as well as receiving tasks from other means (receiver components). Some components provide none of the above, simply middleware or convienience.
