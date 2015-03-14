@@ -34,8 +34,8 @@ var qb = QB.init(options)
     // .use(function (type, task, next) {
     //   console.log('Finished processing a task in ' + type + ' at ' + task.process + ' in ' + task.processing_time + 'ms');
     // })
-  .on('fail', function (type, task, next) {
-    qb.log.error('FAIL: Type %s: %s', type, task.error);
+  .on('fail', function (err, type, task, next) {
+    qb.log.error('FAIL: Type %s: %s', type, err);
   })
   .on('process').use(endWhenIShould)
 

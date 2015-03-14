@@ -39,12 +39,13 @@ tests.canprocess = function (test) {
 }
 
 tests.fail = function (test) {
-  test.expect(8)
+  test.expect(9)
   qb.on('error', test.done)
-    .post('fail', function (type, task) {
+    .post('fail', function (err, type, task) {
       test.equal(type, 'task')
       test.ok(task.truefield)
       test.ok(task.fail)
+      test.ok(/test/.test(err.toString()))
       setImmediate(test.done)
     })
     .post('finish', function (type, task) {

@@ -35,10 +35,11 @@ tests.setTimestamp = function setTimestamp (test) {
 
 tests.retryer = function (test) {
   var i = 0
-  test.expect(4)
+  test.expect(5)
   qb.on('error', test.done)
     .on('fail', QB.middleware.retry(qb, 'serve', 2))
-    .on('fail', function (type, task) {
+    .on('fail', function (err, type, task) {
+      test.ok(/yolo/.test(err.toString()))
       test.equal(task.retry, 2)
       setImmediate(test.done)
     })

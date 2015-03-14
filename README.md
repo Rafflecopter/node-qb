@@ -177,17 +177,15 @@ These are the primary points for middleware:
 
 - `.pre('push', function (type, task, next) {})` Before a push occurs, modify the task. Erroring here will cause an error response by receive components.
 - `.on('finish', function (type, task, next) {})` Do something upon a successful completion of a task.
-- `.on('fail', function (type, task, next) {})` Do something upon a failed task. `task.error` will be available as a stringified error form.
+- `.on('fail', function (err, type, task, next) {})` Do something upon a failed task.
 - `.on('error', function (err, next) {})` Do something upon an internal error occurring.
 
 ### Provided Middleware
 
 ```javascript
-qb.pre('push')
-  .use(QB.middleware.setTimestamp('field-to-set-in-the-task'))
+qb.pre('push', QB.middleware.setTimestamp('field-to-set-in-the-task'))
 
-qb.on('fail')
-  .use(QB.middleware.retry(['type-to-retry','another-type'], 2 /* times */))
+qb.on('fail', QB.middleware.retry(['type-to-retry','another-type'], 2 /* times */))
 ```
 
 ## Tests
