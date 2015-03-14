@@ -20,8 +20,7 @@ tests.tearDown = function (callback) {
 
 tests.canprocess = function (test) {
   test.expect(4)
-  qb.on('error', test.ifError)
-    .post('finish', function (type, task, next) {
+  qb.post('finish', function (type, task, next) {
       test.equal(type, 'task')
       test.ok(task.truefield)
       setImmediate(test.done)
@@ -40,8 +39,7 @@ tests.canprocess = function (test) {
 
 tests.fail = function (test) {
   test.expect(9)
-  qb.on('error', test.done)
-    .post('fail', function (err, type, task) {
+  qb.post('fail', function (err, type, task) {
       test.equal(type, 'task')
       test.ok(task.truefield)
       test.ok(task.fail)
@@ -66,8 +64,7 @@ tests.fail = function (test) {
 
 tests.push_does_nothing = function (test) {
   test.expect(1)
-  qb.on('error', test.ifError)
-    .on('process-ready', function (type, next) {
+  qb.on('process-ready', function (type, next) {
       test.equal(type, 'never-run-task')
       next()
       qb.push('never-run-task', {truefield: true})
@@ -82,8 +79,7 @@ tests.push_does_nothing = function (test) {
 tests.aliases = function (test) {
   var count = 0
   test.expect(3)
-  qb.on('error', test.ifError)
-    .alias('upslope', 'beer://boulder')
+  qb.alias('upslope', 'beer://boulder')
     .alias('upslope', 'mountain://sanitas')
     .on('push', function (location, task, next) {
       if (location.split('://')[0] === 'beer') {
